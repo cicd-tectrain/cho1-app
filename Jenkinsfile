@@ -1,57 +1,57 @@
 pipeline {
+
     agent any
 
     environment {
         INTEGRATION_BRANCH = 'integration'
     }
+
     stages {
-        stage('Build'){
-            // limit branches
-            when  {
+        stage("Build Feature"){
+            // Limit Branches
+            when {
                 branch 'feature/*'
                 beforeAgent true
             }
-
-
-            //Docker Agent
+            // Docker Agent
             agent {
-                docker {
-                    image 'gradle:7.5.1-jdk17-focal'
-                }
+              docker {
+                image 'gradle:7.5.1-jdk17-focal'
+              }
             }
 
-
-            steps {
-                echo 'Build Feature...'
+            steps{
+                echo "Building..."
                 sh 'gradle clean build -x test'
                 sh 'ls -la build/libs'
             }
         }
 
-        stage('Test'){
-
-            when  {
+        stage("Test Feature"){
+            // Limit Branches
+            when {
                 branch 'feature/*'
                 beforeAgent true
             }
-
-            //Docker Agent
+            // Docker Agent
             agent {
-                docker {
-                    image 'gradle:7.5.1-jdk17-focal'
-                }
+              docker {
+                image 'gradle:7.5.1-jdk17-focal'
+              }
             }
-            steps {
-                echo 'Test Feature...'
+
+            steps{
+                echo "Testing..."
                 sh 'gradle test'
-                //Junit XML Reports
+                // JUNit XML Reports
                 sh 'ls -la build/test-results/test'
                 sh 'ls -la build/reports/tests'
             }
-            // Post Build Actions
+
+            // Post-Build Actions
             post {
                 always {
-                    // Junit results archivieren
+                    // JUnit Results archivieren
                     junit 'build/test-results/test/*.xml'
                 }
 
@@ -69,82 +69,83 @@ pipeline {
             }
         }
 
-         stage('Integrate'){
-
-             when  {
-                 branch 'feature/*'
-                 beforeAgent true
-             }
-             steps {
-                 echo "Integrating..."
-                 sh 'git --version'
-                 sh 'git branch -a'
-                 sh 'git checkout ${INTEGRATION_BRANCH}'
-                 sh 'git pull'
-                 // FIX ME
-                 sh 'git merge --no-ff --no-edit remotes/origin/${BRANCH_NAME}'
-                 // Pushen
-                 withCredentials([gitUsernamePassword(credentialsId: 'github', gitToolName: 'Default')]) {
-                     sh 'git push origin ${INTEGRATION_BRANCH}'
-                 }
-             }
-         }
-//===================================== INTEGRATION=======================
-        stage('Build Integration'){
-            // limit branches
-            when  {
-                branch "${INTEGRATION_BRANCH}"
+        stage("Integrate Feature"){
+            // Limit Branches
+            when {
+                branch 'feature/*'
                 beforeAgent true
             }
 
+            // Hier wieder agent any
+            steps{
+                echo "Integrating..."
+                sh 'git --version'
+                sh 'git branch -a'
+                sh 'git checkout ${INTEGRATION_BRANCH}'
+                sh 'git pull --ff-only'
+                // FIX ME
+                sh 'git merge --no-ff --no-edit remotes/origin/${BRANCH_NAME}'
 
-            //Docker Agent
-            agent {
-                docker {
-                    image 'gradle:7.5.1-jdk17-focal'
+                // Pushen
+                withCredentials([gitUsernamePassword(credentialsId: 'github', gitToolName: 'Default')]) {
+                    sh 'git push origin ${INTEGRATION_BRANCH}'
                 }
             }
+        }
 
-
-            steps {
-                echo 'Build Integration...'
-                sh 'gradle clean build -x test'
-                sh 'ls -la build/libs'
-
+        // ========================= INTEGRATION =========================
+        stage("Build Integration"){
+            // Limit Branches
+            when {
+                branch "${INTEGRATION_BRANCH}"
+                beforeAgent true
+            }
+            // Docker Agent
+            agent {
+              docker {
+                image 'gradle:7.5.1-jdk17-focal'
+              }
             }
 
-            // Stash if stage successful
+            steps{
+                echo "Building..."
+                sh 'gradle clean build -x test'
+                sh 'ls -la build/libs'
+            }
+
+            // Stash if stage was successful
             post {
-                success {
+                success{
                     stash name: 'integration_build', includes: 'build/'
                 }
             }
         }
 
-        stage('Test Integration'){
-
-            when  {
+        stage("Test Integration"){
+            // Limit Branches
+            when {
                 branch "${INTEGRATION_BRANCH}"
                 beforeAgent true
             }
-
-            //Docker Agent
+            // Docker Agent
             agent {
-                docker {
-                    image 'gradle:7.5.1-jdk17-focal'
-                }
+              docker {
+                image 'gradle:7.5.1-jdk17-focal'
+              }
             }
-            steps {
-                echo 'Test Integration...'
+
+            steps{
+                echo "Testing..."
                 sh 'gradle test'
-                //Junit XML Reports
+                // JUNit XML Reports
                 sh 'ls -la build/test-results/test'
                 sh 'ls -la build/reports/tests'
             }
-            // Post Build Actions
+
+            // Post-Build Actions
             post {
                 always {
-                    // Junit results archivieren
+                    // JUnit Results archivieren
                     junit 'build/test-results/test/*.xml'
                 }
 
@@ -158,19 +159,20 @@ pipeline {
                         reportName: 'Test-Report'
                     ]
                 }
-
             }
         }
 
         stage("Publish Artifacts") {
-                     // Limit Branches
+             // Limit Branches
              when {
                  branch "${INTEGRATION_BRANCH}"
                  beforeAgent true
              }
+
             steps {
                 // Unstash
                 unstash 'integration_build'
+
                 // Publish Artifact in Nexus
                 nexusArtifactUploader artifacts: [
                 [
@@ -180,6 +182,7 @@ pipeline {
                     type: 'jar'
                 ]],
                 credentialsId: 'nexus_credentials',
+                nexusVersion: 'nexus3',
                 groupId: '',
                 nexusUrl: 'nexus:8081/repository/maven-snapshots',
                 protocol: 'http',
@@ -188,29 +191,32 @@ pipeline {
             }
         }
 
-        stage("Deploy integration branch") {
-            when  {
+        stage('Deploy Integration branch') {
+            when {
                 branch "${INTEGRATION_BRANCH}"
                 beforeAgent true
             }
 
-            steps {
-                echo "Deployment..."
-            }
-            // docker image bauen und starten (und archivieren)
+            // Docker image bauen und starten (und archivieren)
 
             // Env für Nexus Credentials
+            environment {
+                NEXUS_CREDENTIALS = credentials('nexus_credentials')
+            }
+            steps {
+                unstash 'integration_build'
 
-            // Image bauen -> Dockerfile
-            //sh 'docker build -t XXX .'
-            // Image taggen
+                // Image bauen -> Dockerfile
+                sh 'docker build -t nexus:5000/app:latest -f docker/integration/Dockerfile .'
+                // Image taggen
 
-            //sh 'docker login nexus:8081'
+                sh 'echo ${NEXUS_CREDENTIALS_PSW} | docker login -u ${NEXUS_CREDENTIALS_USR} --password-stdin nexus:5000'
 
-            // Image pushen
+                // Image pushen
+                sh 'docker push nexus:5000/app:latest'
 
+                sh 'docker container run -p 8090:8085 --name testing -d --rm app:latest'
+            }
         }
-
     }
-
 }
