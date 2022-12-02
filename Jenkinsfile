@@ -6,6 +6,11 @@ pipeline {
     }
     stages {
         stage('Build'){
+            // limit branches
+            when  {
+                branch 'feature/*'
+                beforeAgent true
+            }
 
             //Docker Agent
             agent {
@@ -23,6 +28,11 @@ pipeline {
         }
 
         stage('Test'){
+
+            when  {
+                branch 'feature/*'
+                beforeAgent true
+            }
 
             //Docker Agent
             agent {
@@ -59,6 +69,11 @@ pipeline {
         }
 
          stage('Integrate'){
+
+             when  {
+                 branch 'feature/*'
+                 beforeAgent true
+             }
              steps {
                  echo "Integrating..."
                  sh 'git --version'
