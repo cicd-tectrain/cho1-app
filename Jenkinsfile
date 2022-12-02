@@ -162,22 +162,21 @@ pipeline {
             }
         }
 
-        stage("PUblish Artifacts") {
-            when  {
-                branch "${INTEGRATION_BRANCH}"
-                beforeAgent true
-            }
-
+        stage("Publish Artifacts") {
+                     // Limit Branches
+             when {
+                 branch "${INTEGRATION_BRANCH}"
+                 beforeAgent true
+             }
             steps {
                 // Unstash
                 unstash 'integration_build'
-
-                // Publish artifact in nexus
+                // Publish Artifact in Nexus
                 nexusArtifactUploader artifacts: [
                 [
                     artifactId: at.tectrain.app,
                     classifier: '',
-                    file: 'build/libs/app-0.0.1-SNAPSHOT.jar'
+                    file: 'build/libs/app-0.0.1-SNAPSHOT.jar',
                     type: 'jar'
                 ]],
                 credentialsId: 'nexus_credentials',
@@ -187,8 +186,6 @@ pipeline {
                 repository: '',
                 version: '0.0.1-SNAPSHOT'
             }
-
-
         }
 
         stage("Deploy integration branch") {
