@@ -205,7 +205,7 @@ pipeline {
                 NEXUS_CREDENTIALS = credentials('nexus_credentials')
             }
             steps {
-                unstash 'integration_build'
+                unstash name: 'integration_build'
 
                 // Image bauen -> Dockerfile
                 sh 'docker build -t nexus:5000/app:latest -f docker/integration/Dockerfile .'
