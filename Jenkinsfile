@@ -66,9 +66,10 @@ pipeline {
                  // FIX ME
                  sh 'git merge --no-ff --no-edit remotes/origin/feature/1'
                  // Pushen
-                 withCredentials([gitUsernamePassword(credentialsId: 'github_pat', gitToolName: 'Default')]) {
+                 withCredentials([gitUsernamePassword(credentialsId: 'github', gitToolName: 'Default')]) {
                      sh 'git push origin integration'
-              }
+                 }
+             }
          }
 
     }
