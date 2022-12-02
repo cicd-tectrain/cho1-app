@@ -66,7 +66,7 @@ pipeline {
                  sh 'git checkout ${INTEGRATION_BRANCH}'
                  sh 'git pull'
                  // FIX ME
-                 sh 'git merge --no-ff --no-edit remotes/origin/feature/123'
+                 sh 'git merge --no-ff --no-edit remotes/origin/${BRANCH_NAME}'
                  // Pushen
                  withCredentials([gitUsernamePassword(credentialsId: 'github', gitToolName: 'Default')]) {
                      sh 'git push origin ${INTEGRATION_BRANCH}'
