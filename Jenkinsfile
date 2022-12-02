@@ -1,7 +1,9 @@
 pipeline {
     agent any
 
-
+    environment {
+        INTEGRATION_BRANCH = 'integration'
+    }
     stages {
         stage('Build'){
 
@@ -61,13 +63,13 @@ pipeline {
                  echo "Integrating..."
                  sh 'git --version'
                  sh 'git branch -a'
-                 sh 'git checkout integration'
+                 sh 'git checkout ${INTEGRATION_BRANCH}'
                  sh 'git pull'
                  // FIX ME
                  sh 'git merge --no-ff --no-edit remotes/origin/feature/123'
                  // Pushen
                  withCredentials([gitUsernamePassword(credentialsId: 'github', gitToolName: 'Default')]) {
-                     sh 'git push origin integration'
+                     sh 'git push origin ${INTEGRATION_BRANCH}'
                  }
              }
          }
