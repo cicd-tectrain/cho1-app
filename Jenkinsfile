@@ -191,6 +191,7 @@ pipeline {
             }
         }
 
+
         stage('Deploy Integration branch') {
             when {
                 branch "${INTEGRATION_BRANCH}"
