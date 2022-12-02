@@ -171,7 +171,7 @@ pipeline {
 
             steps {
                 // Unstash
-                unstash 'integration_build'
+                unstash name: 'integration_build'
 
                 // Publish Artifact in Nexus
                 nexusArtifactUploader artifacts: [
