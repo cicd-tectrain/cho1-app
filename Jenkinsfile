@@ -30,6 +30,16 @@ pipeline {
             steps {
                 echo 'Test Feature...'
                 sh 'gradle test'
+                //Junit XML Reports
+                sh 'ls -la build/test-results/test'
+                sh 'ls -la build/reports/test'
+            }
+            // Post Build Actions
+            post {
+                always {
+                    // Junit results archivieren
+                    junit 'build/test-results/test/*.xml'
+                }
             }
         }
 
