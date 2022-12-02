@@ -12,6 +12,7 @@ pipeline {
                 beforeAgent true
             }
 
+
             //Docker Agent
             agent {
                 docker {
