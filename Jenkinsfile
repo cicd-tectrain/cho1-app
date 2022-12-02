@@ -171,7 +171,7 @@ pipeline {
 
             steps {
                 // Unstash
-                unstash 'integration_build'
+                unstash name: 'integration_build'
 
                 // Publish Artifact in Nexus
                 nexusArtifactUploader artifacts: [
@@ -184,12 +184,13 @@ pipeline {
                 credentialsId: 'nexus_credentials',
                 nexusVersion: 'nexus3',
                 groupId: '',
-                nexusUrl: 'nexus:8081/repository/maven-snapshots',
+                nexusUrl: 'localhost:8081',
                 protocol: 'http',
-                repository: '',
+                repository: 'maven-snapshots',
                 version: '0.0.1-SNAPSHOT'
             }
         }
+
 
         stage('Deploy Integration branch') {
             when {
