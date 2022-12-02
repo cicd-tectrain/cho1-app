@@ -32,7 +32,7 @@ pipeline {
                 sh 'gradle test'
                 //Junit XML Reports
                 sh 'ls -la build/test-results/test'
-                sh 'ls -la build/reports/test'
+                sh 'ls -la build/reports/tests'
             }
             // Post Build Actions
             post {
