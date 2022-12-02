@@ -5,6 +5,7 @@ pipeline {
         stage('Build'){
             steps {
                 echo 'Build Feature...'
+                sh 'gradle clean build -x test'
             }
         }
 
