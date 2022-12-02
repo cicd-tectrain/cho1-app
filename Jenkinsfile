@@ -64,7 +64,7 @@ pipeline {
                  sh 'git checkout integration'
                  sh 'git pull'
                  // FIX ME
-                 sh 'git merge --no-ff --no-edit remotes/origin/feature/1'
+                 sh 'git merge --no-ff --no-edit remotes/origin/feature/123'
                  // Pushen
                  withCredentials([gitUsernamePassword(credentialsId: 'github', gitToolName: 'Default')]) {
                      sh 'git push origin integration'
